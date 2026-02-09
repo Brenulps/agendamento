@@ -7,9 +7,12 @@ import BaseBadge from '~/components/BaseBadge.vue';
 import BaseAvatar from '~/components/BaseAvatar.vue';
 import BaseAlert from '~/components/BaseAlert.vue';
 import BaseSelect from '~/components/BaseSelect.vue';
+import { PhPlus, PhTrash, PhPencil } from '@phosphor-icons/vue';
 import { ref } from 'vue';
+import { useToast } from '~/composables/useToast';
 
 const id = 'page-teste';
+const { success, error, warning, info } = useToast();
 
 // Estados de teste
 const inputValue = ref('');
@@ -23,6 +26,23 @@ const selectOptions = [
   { value: 'opcao2', label: 'Opção 2' },
   { value: 'opcao3', label: 'Opção 3' },
 ];
+
+// Funções para demonstrar toasts
+function showSuccessToast(): void {
+  success('Operação realizada com sucesso!', 'Sucesso');
+}
+
+function showErrorToast(): void {
+  error('Ocorreu um erro ao processar sua solicitação.', 'Erro');
+}
+
+function showWarningToast(): void {
+  warning('Atenção! Verifique os dados antes de continuar.', 'Atenção');
+}
+
+function showInfoToast(): void {
+  info('Esta é uma notificação informativa.', 'Informação');
+}
 </script>
 
 <template>
@@ -65,6 +85,30 @@ const selectOptions = [
               <div class="flex flex-wrap gap-3">
                 <BaseButton :disabled="true">Disabled</BaseButton>
                 <BaseButton :loading="true">Loading</BaseButton>
+              </div>
+            </div>
+            
+            <div>
+              <p class="text-sm text-neutral-500 mb-2">Com Ícones</p>
+              <div class="flex flex-wrap gap-3">
+                <BaseButton variant="primary">
+                  <template #icon>
+                    <PhPlus :size="16" weight="bold" />
+                  </template>
+                  Adicionar
+                </BaseButton>
+                <BaseButton variant="secondary">
+                  <template #icon>
+                    <PhPencil :size="16" weight="bold" />
+                  </template>
+                  Editar
+                </BaseButton>
+                <BaseButton variant="danger">
+                  <template #icon>
+                    <PhTrash :size="16" weight="bold" />
+                  </template>
+                  Excluir
+                </BaseButton>
               </div>
             </div>
           </div>
@@ -200,6 +244,30 @@ const selectOptions = [
             Clique no X para fechar este alerta.
           </BaseAlert>
         </div>
+      </section>
+
+      <!-- Seção: Toasts -->
+      <section class="mb-12">
+        <h2 class="text-xl font-semibold text-neutral-800 mb-4">Toasts (Notificações)</h2>
+        <BaseCard variant="elevated">
+          <p class="text-sm text-neutral-500 mb-4">
+            Clique nos botões abaixo para exibir notificações toast no canto superior direito.
+          </p>
+          <div class="flex flex-wrap gap-3">
+            <BaseButton variant="primary" @click="showInfoToast">
+              Mostrar Info
+            </BaseButton>
+            <BaseButton variant="secondary" @click="showSuccessToast">
+              Mostrar Sucesso
+            </BaseButton>
+            <BaseButton variant="outline" @click="showWarningToast">
+              Mostrar Aviso
+            </BaseButton>
+            <BaseButton variant="danger" @click="showErrorToast">
+              Mostrar Erro
+            </BaseButton>
+          </div>
+        </BaseCard>
       </section>
 
       <!-- Seção: Cards -->

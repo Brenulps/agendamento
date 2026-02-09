@@ -56,6 +56,7 @@ const iconSizes: Record<string, number> = {
       weight="bold"
       class="animate-spin"
     />
+    <slot v-else name="icon" />
     <slot />
   </button>
 </template>
