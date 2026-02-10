@@ -53,10 +53,10 @@ function toggleSettings() {
     <!-- Toggle Button -->
     <button 
       @click="toggleSidebar"
-      class="absolute -right-3 top-20 w-6 h-6 bg-white border border-neutral-200 rounded-full flex items-center justify-center shadow-md hover:bg-neutral-50 transition-colors z-30"
+      class="absolute -right-4 top-20 w-8 h-8 bg-white border border-neutral-200 rounded-full flex items-center justify-center shadow-md hover:bg-neutral-50 transition-colors z-30"
     >
-      <PhCaretLeft v-if="!isSidebarCollapsed" :size="14" weight="bold" />
-      <PhCaretRight v-else :size="14" weight="bold" />
+      <PhCaretLeft v-if="!isSidebarCollapsed" :size="18" weight="bold" />
+      <PhCaretRight v-else :size="18" weight="bold" />
     </button>
 
     <!-- Logo -->
