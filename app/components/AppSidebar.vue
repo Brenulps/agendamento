@@ -16,6 +16,7 @@ import {
 import { useAuth } from '~/composables/useAuth';
 import { useLayout } from '~/composables/useLayout';
 import { ref } from 'vue';
+import { useRoute } from '#imports';
 
 const id = 'app-sidebar';
 const { user, logout, isLoading } = useAuth();
@@ -28,6 +29,7 @@ const menuItems = [
   { label: 'Dashboard', icon: PhHouse, to: '/' },
   { label: 'Agendamentos', icon: PhCalendar, to: '/agendamentos' },
   { label: 'Clientes', icon: PhUserList, to: '/clientes' },
+  { label: 'Profissionais', icon: PhUserList, to: '/profissionais' },
   { label: 'Especialidades', icon: PhBriefcase, to: '/especialidades' },
   { label: 'Estatísticas', icon: PhChartPie, to: '/stats' },
 ];
