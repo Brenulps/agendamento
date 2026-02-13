@@ -42,10 +42,27 @@ export function useAuth() {
         }
     }
 
+    // send password reset email (public page can call this)
+    async function sendPasswordReset(emailAddr: string) {
+        isLoading.value = true;
+        try {
+            const { data, error: sbError } = await supabase.auth.resetPasswordForEmail(emailAddr);
+            if (sbError) throw sbError;
+            success('E-mail de recuperação enviado, verifique sua caixa de entrada.');
+            return true;
+        } catch (e: any) {
+            error(e.message || 'Erro ao enviar e-mail de recuperação', 'Erro');
+            return false;
+        } finally {
+            isLoading.value = false;
+        }
+    }
+
     return {
         user,
         isLoading,
         login,
         logout,
+        sendPasswordReset,
     };
 }

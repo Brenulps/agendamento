@@ -1,15 +1,33 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, computed } from 'vue';
 import { useProfissionais } from '~/composables/useProfissionais';
+import { useUserCurrentStore } from '~/stores/user_current';
+import { useToast } from '~/composables/useToast';
+import ProfissionalFormModal from '~/components/ProfissionalFormModal.vue';
+import ConfirmDeleteModal from '~/components/ConfirmDeleteModal.vue';
+import BaseButton from '~/components/BaseButton.vue';
 import { 
   PhUser, 
   PhEnvelope, 
   PhMedal, 
   PhStethoscope,
-  PhIdentificationCard
+  PhIdentificationCard,
+  PhPlus,
+  PhTrash,
+  PhUserList
 } from '@phosphor-icons/vue';
 
-const { profissionais, isLoading, fetchProfissionais } = useProfissionais();
+const { profissionais, isLoading, fetchProfissionais, addProfissional, deleteProfissional } = useProfissionais();
+const userStore = useUserCurrentStore();
+const { success, error: toastError } = useToast();
+
+const isAdmin = computed(() => userStore.profile?.role === 'admin');
+
+// Modal states
+const isFormModalOpen = ref(false);
+const isDeleteModalOpen = ref(false);
+const professionalToDelete = ref<number | null>(null);
+const isSubmitting = ref(false);
 
 onMounted(() => {
   fetchProfissionais();
@@ -18,13 +36,64 @@ onMounted(() => {
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('pt-BR');
 };
+
+const handleOpenCreateModal = () => {
+  isFormModalOpen.value = true;
+};
+
+const handleSubmit = async (data: { userId: string, especialidadeId: number }) => {
+  isSubmitting.value = true;
+  const result = await addProfissional(data.userId, data.especialidadeId);
+  
+  if (result.success) {
+    success(result.message);
+    isFormModalOpen.value = false;
+  } else {
+    toastError(result.message);
+  }
+  isSubmitting.value = false;
+};
+
+const handleOpenDeleteModal = (id: number) => {
+  professionalToDelete.value = id;
+  isDeleteModalOpen.value = true;
+};
+
+const handleConfirmDelete = async () => {
+  if (professionalToDelete.value) {
+    isSubmitting.value = true;
+    const result = await deleteProfissional(professionalToDelete.value);
+    
+    if (result.success) {
+      success(result.message);
+      isDeleteModalOpen.value = false;
+      professionalToDelete.value = null;
+    } else {
+      toastError(result.message);
+    }
+    isSubmitting.value = false;
+  }
+};
 </script>
 
 <template>
   <div class="p-8">
-    <div class="mb-8">
-      <h1 class="text-2xl font-bold text-neutral-900 font-sans">Profissionais</h1>
-      <p class="mt-1 text-neutral-500 font-sans">Visualize todos os profissionais cadastrados no sistema e suas especialidades.</p>
+    <div class="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-neutral-900 font-sans">Profissionais</h1>
+        <p class="mt-1 text-neutral-500 font-sans">Visualize todos os profissionais cadastrados no sistema e suas especialidades.</p>
+      </div>
+      
+      <BaseButton 
+        v-if="isAdmin"
+        variant="primary" 
+        @click="handleOpenCreateModal"
+      >
+        <template #icon>
+          <PhPlus :size="20" weight="bold" />
+        </template>
+        Novo Profissional
+      </BaseButton>
     </div>
 
     <!-- Lista de Profissionais -->
@@ -32,8 +101,19 @@ const formatDate = (dateString: string) => {
       <div 
         v-for="prof in profissionais" 
         :key="prof.profissional_id"
-        class="bg-white border border-neutral-200 rounded-2xl shadow-sm hover:border-primary-300 hover:shadow-md transition-all duration-300 overflow-hidden group"
+        class="bg-white border border-neutral-200 rounded-2xl shadow-sm hover:border-primary-300 hover:shadow-md transition-all duration-300 overflow-hidden group relative"
       >
+        <!-- Administrative Actions Overlay/Button -->
+        <div v-if="isAdmin" class="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button 
+            @click="handleOpenDeleteModal(prof.profissional_id)"
+            class="p-2 bg-white/80 backdrop-blur-sm text-error-500 hover:bg-error-50 rounded-xl border border-neutral-200 shadow-sm transition-all"
+            title="Remover Profissional"
+          >
+            <PhTrash :size="18" weight="bold" />
+          </button>
+        </div>
+
         <!-- Header do Card -->
         <div class="p-6 border-b border-neutral-50 bg-neutral-50/30">
           <div class="flex items-center gap-4">
@@ -97,6 +177,18 @@ const formatDate = (dateString: string) => {
       </div>
       <h3 class="text-xl font-bold text-neutral-800">Nenhum profissional cadastrado</h3>
       <p class="text-neutral-500 mt-2 max-w-xs mx-auto text-sm">A lista de profissionais está vazia no momento ou não foi possível carregar os dados.</p>
+      
+      <BaseButton 
+        v-if="isAdmin"
+        variant="primary" 
+        class="mt-6"
+        @click="handleOpenCreateModal"
+      >
+        <template #icon>
+          <PhPlus :size="20" weight="bold" />
+        </template>
+        Adicionar Primeiro Profissional
+      </BaseButton>
     </div>
 
     <!-- Loading State -->
@@ -118,5 +210,22 @@ const formatDate = (dateString: string) => {
         </div>
       </div>
     </div>
+
+    <!-- Modals -->
+    <ProfissionalFormModal 
+      :show="isFormModalOpen"
+      :loading="isSubmitting"
+      @close="isFormModalOpen = false"
+      @submit="handleSubmit"
+    />
+
+    <ConfirmDeleteModal 
+      :show="isDeleteModalOpen"
+      :loading="isSubmitting"
+      title="Remover Profissional"
+      message="Tem certeza que deseja remover este profissional? Ele perderá o acesso às funcionalidades de especialista."
+      @close="isDeleteModalOpen = false"
+      @confirm="handleConfirmDelete"
+    />
   </div>
 </template>

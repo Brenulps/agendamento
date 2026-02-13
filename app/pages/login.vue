@@ -15,6 +15,8 @@ const id = 'page-login';
 const { login, isLoading } = useAuth();
 const { error, success } = useToast();
 
+
+
 // Estados do formulário
 const email = ref('');
 const password = ref('');
@@ -113,7 +115,7 @@ function handleSocialLogin(provider: string): void {
               :disabled="isLoading"
             />
             <a
-              href="#"
+              href="/forgot-password"
               class="text-sm text-primary-500 hover:text-primary-600 font-medium transition-colors"
             >
               Esqueceu a senha?

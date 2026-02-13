@@ -3,12 +3,12 @@ import { PhCaretDown } from '@phosphor-icons/vue';
 import { useId } from 'vue';
 
 interface Option {
-  value: string;
+  value: string | number;
   label: string;
 }
 
 interface Props {
-  modelValue?: string;
+  modelValue?: string | number | null;
   options: Option[];
   placeholder?: string;
   label?: string;
@@ -25,7 +25,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string];
+  'update:modelValue': [value: any];
 }>();
 
 const id = `base-select-${useId()}`;

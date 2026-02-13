@@ -15,8 +15,18 @@ import {
 } from '@phosphor-icons/vue';
 import { useAuth } from '~/composables/useAuth';
 import { useLayout } from '~/composables/useLayout';
-import { ref } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRoute } from '#imports';
+import { useUserCurrentStore } from '~/stores/user_current';
+import { useAdmin } from '~/composables/useAdmin';
+import { useToast } from '~/composables/useToast';
+
+const userStore = useUserCurrentStore();
+const { isAdmin: rpcIsAdmin, checkAdmin, isLoading: checkingAdmin } = useAdmin();
+const isAdmin = computed(() => (userStore.profile?.role === 'admin') || rpcIsAdmin.value);
+
+// warm-check after mount to avoid SSR/client hydration mismatch
+onMounted(() => { checkAdmin().catch(() => {}) })
 
 const id = 'app-sidebar';
 const { user, logout, isLoading } = useAuth();
@@ -24,17 +34,47 @@ const { isSidebarCollapsed, toggleSidebar } = useLayout();
 const route = useRoute();
 
 const isSettingsOpen = ref(false);
+const { error: toastError, info: toastInfo } = useToast();
 
-const menuItems = [
+async function handleAdminClick() {
+  // reforça a checagem RPC no clique e navega apenas se for admin
+  try {
+    await checkAdmin()
+    if (rpcIsAdmin.value || userStore.profile?.role === 'admin') {
+      return navigateTo('/admin')
+    }
+    toastError('Acesso negado: você não tem permissão de administrador')
+  } catch (err) {
+    toastError('Erro ao verificar permissão de administrador')
+    console.warn('handleAdminClick checkAdmin falhou:', err)
+  }
+}
+
+const baseMenuItems = [
   { label: 'Dashboard', icon: PhHouse, to: '/' },
   { label: 'Agendamentos', icon: PhCalendar, to: '/agendamentos' },
   { label: 'Clientes', icon: PhUserList, to: '/clientes' },
   { label: 'Profissionais', icon: PhUserList, to: '/profissionais' },
   { label: 'Especialidades', icon: PhBriefcase, to: '/especialidades' },
   { label: 'Estatísticas', icon: PhChartPie, to: '/stats' },
-];
+]
 
-function toggleSettings() {
+const menuItems = computed(() => {
+  // adiciona o item Admin abaixo de Estatísticas quando usuário for admin
+  return rpcIsAdmin.value || (userStore.profile?.role === 'admin')
+    ? [...baseMenuItems, { label: 'Admin', icon: PhGear, to: '/admin' }]
+    : baseMenuItems
+})
+
+async function toggleSettings() {
+  // sempre rodar a checagem RPC ao clicar em "Configurações"
+  try {
+    await checkAdmin()
+  } catch (err) {
+    // silenciar — não bloqueia UI, middleware já protege rotas críticas
+    console.warn('checkAdmin falhou:', err)
+  }
+
   if (isSidebarCollapsed.value) {
     toggleSidebar();
     isSettingsOpen.value = true;
@@ -75,31 +115,33 @@ function toggleSettings() {
 
     <!-- Navigation -->
     <nav class="flex-1 p-3 space-y-2 overflow-y-auto overflow-x-hidden">
-      <NuxtLink
-        v-for="item in menuItems"
-        :key="item.to"
-        :to="item.to"
-        class="flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200"
-        :class="[
-          route.path === item.to 
-            ? 'bg-primary-50 text-primary-600 font-semibold' 
-            : 'text-neutral-500 hover:bg-neutral-50 hover:text-neutral-700'
-        ]"
-      >
-        <component 
-          :is="item.icon" 
-          :size="24" 
-          :weight="route.path === item.to ? 'bold' : 'regular'" 
-          class="flex-shrink-0"
-        />
-        <span 
-          v-if="!isSidebarCollapsed"
-          class="whitespace-nowrap transition-all duration-300 overflow-hidden"
-          :class="[isSidebarCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100']"
+      <template v-for="item in menuItems" :key="item.to">
+        <!-- Admin item: intercepta clique e verifica RPC antes de navegar -->
+        <button
+          v-if="item.to === '/admin'"
+          @click="handleAdminClick"
+          class="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 text-neutral-500 hover:bg-neutral-50 hover:text-neutral-700"
+          :class="route.path === item.to ? 'bg-primary-50 text-primary-600 font-semibold' : ''"
         >
-          {{ item.label }}
-        </span>
-      </NuxtLink>
+          <component :is="item.icon" :size="24" :weight="route.path === item.to ? 'bold' : 'regular'" class="flex-shrink-0" />
+          <span v-if="!isSidebarCollapsed" class="whitespace-nowrap transition-all duration-300 overflow-hidden" :class="[isSidebarCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100']">{{ item.label }}</span>
+        </button>
+
+        <!-- Default items use NuxtLink -->
+        <NuxtLink
+          v-else
+          :to="item.to"
+          class="flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200"
+          :class="[
+            route.path === item.to 
+              ? 'bg-primary-50 text-primary-600 font-semibold' 
+              : 'text-neutral-500 hover:bg-neutral-50 hover:text-neutral-700'
+          ]"
+        >
+          <component :is="item.icon" :size="24" :weight="route.path === item.to ? 'bold' : 'regular'" class="flex-shrink-0" />
+          <span v-if="!isSidebarCollapsed" class="whitespace-nowrap transition-all duration-300 overflow-hidden" :class="[isSidebarCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100']">{{ item.label }}</span>
+        </NuxtLink>
+      </template>
     </nav>
 
     <!-- User Profile & Dropdown Settings -->
@@ -116,6 +158,9 @@ function toggleSettings() {
           <PhUser :size="18" />
           Perfil
         </NuxtLink>
+
+
+
         <button 
           @click="logout"
           :disabled="isLoading"
@@ -136,11 +181,14 @@ function toggleSettings() {
             : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
         ]"
       >
-        <PhGear 
-          :size="24" 
-          :weight="isSettingsOpen ? 'fill' : 'regular'"
-          class="flex-shrink-0"
-        />
+        <div class="flex items-center gap-2">
+          <PhGear 
+            :size="24" 
+            :weight="isSettingsOpen ? 'fill' : 'regular'"
+            class="flex-shrink-0"
+          />
+          <span v-if="checkingAdmin" class="w-3 h-3 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></span>
+        </div>
         <div v-if="!isSidebarCollapsed" class="flex-1 flex items-center justify-between min-w-0">
           <span class="font-medium whitespace-nowrap">Configurações</span>
           <component 

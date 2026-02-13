@@ -6,4 +6,11 @@ export default defineNuxtConfig({
   build: {
     transpile: ['@phosphor-icons/vue'],
   },
+
+  // centralize public routes so middleware can read them from one place
+  runtimeConfig: {
+    public: {
+      publicRoutes: ['/login', '/forgot-password', '/change-password']
+    }
+  }
 })
