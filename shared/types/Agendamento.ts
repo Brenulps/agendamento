@@ -4,7 +4,7 @@ export interface Agendamento {
     profissional_id: number;
     data_hora: string;
     status: 'pendente' | 'confirmado' | 'cancelado' | 'concluido';
-    observacoes?: string;
+    observações?: string;
     created_at: string;
     cliente?: {
         nome: string;

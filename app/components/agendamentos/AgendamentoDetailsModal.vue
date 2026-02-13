@@ -117,13 +117,13 @@ const statusLabel = computed(() => {
       </div>
 
       <!-- Observações -->
-      <div v-if="agendamento.observacoes" class="space-y-2 pt-2 border-t border-neutral-50">
+      <div v-if="agendamento.observações" class="space-y-2 pt-2 border-t border-neutral-50">
         <div class="flex items-center gap-2 text-neutral-500 text-xs font-bold uppercase tracking-wider">
           <PhNote :size="14" />
           Observações
         </div>
         <p class="text-sm text-neutral-600 bg-neutral-50 p-3 rounded-lg border border-neutral-100 italic">
-          "{{ agendamento.observacoes }}"
+          "{{ agendamento.observações }}"
         </p>
       </div>
     </div>

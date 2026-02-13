@@ -31,7 +31,7 @@ const form = ref({
   data: '',
   hora: '',
   status: 'pendente' as Agendamento['status'],
-  observacoes: ''
+  observações: ''
 });
 
 const loadData = async () => {
@@ -52,16 +52,16 @@ watch(() => props.show, (isVisible) => {
         data: (dataHora.toISOString().split('T')[0]) || '',
         hora: (dataHora.toTimeString().slice(0, 5)) || '',
         status: props.agendamento.status || 'pendente',
-        observacoes: props.agendamento.observacoes || ''
+        observações: props.agendamento.observações || ''
       };
     } else {
       form.value = {
         cliente_id: null,
         profissional_id: null,
-        data: new Date().toISOString().split('T')[0],
+        data: new Date().toISOString().split('T')[0] || '',
         hora: '08:00',
         status: 'pendente',
-        observacoes: ''
+        observações: ''
       };
     }
   }
@@ -88,7 +88,7 @@ const handleSubmit = async () => {
       profissional_id: form.value.profissional_id!,
       data_hora: dataHora.toISOString(),
       status: form.value.status,
-      observacoes: form.value.observacoes
+      observações: form.value.observações
     };
 
     try {
@@ -174,7 +174,7 @@ const handleSubmit = async () => {
         />
 
         <BaseInput
-          v-model="form.observacoes"
+          v-model="form.observações"
           label="Observações"
           placeholder="Alguma nota importante?"
           :disabled="loading"

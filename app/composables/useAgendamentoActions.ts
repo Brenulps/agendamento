@@ -20,7 +20,7 @@ export const useAgendamentoActions = () => {
                 p_profissional: agendamento.profissional_id,
                 p_data_horario: agendamento.data_hora,
                 p_status: agendamento.status,
-                // p_observacoes: agendamento.observacoes // Coluna não existe no DB segundo erro
+                p_observações: agendamento.observações
             })
 
             console.log('Resposta RPC (Criar):', data, err);
@@ -58,7 +58,7 @@ export const useAgendamentoActions = () => {
                 p_profissional: updates.profissional_id,
                 p_data_horario: updates.data_hora,
                 p_status: updates.status,
-                // p_observacoes: updates.observacoes // Coluna não existe no DB segundo erro
+                p_observações: updates.observações
             })
 
             console.log('Resposta RPC (Atualizar):', data, err);

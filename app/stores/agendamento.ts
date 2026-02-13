@@ -100,14 +100,14 @@ export const useAgendamentoStore = defineStore('agendamento', () => {
                         const dataHora = item.data_hora ?? item['data e horario'] ?? item['data_e_horario'] ?? item['dataHorario'] ?? item['data-hora'] ?? null
                         const clienteNome = item.cliente_nome ?? item.nome_cliente ?? item['nome_cliente'] ?? item['nomeCliente'] ?? ''
                         const profissionalNome = item.profissional_nome ?? item.nome_profissional ?? item['nome_profissional'] ?? item['nomeProfissional'] ?? item['nome_profissional'] ?? ''
-                        const observacoes = item.observacoes ?? item['observações'] ?? item['observacao'] ?? item['observações'] ?? null
+                        const observacoes = item.observações ?? item.observacoes ?? item['observação'] ?? item['observacao'] ?? null
 
                         return {
                             id: item.id,
                             created_at: item.created_at,
                             data_hora: dataHora,
                             status: item.status,
-                            observacoes: observacoes,
+                            observações: observacoes,
                             cliente_id: item.cliente_id ?? item.cliente,
                             profissional_id: item.profissional_id ?? item.profissional,
                             cliente: {
@@ -129,31 +129,31 @@ export const useAgendamentoStore = defineStore('agendamento', () => {
                         if (error) throw error
 
                         agendamentos.value = (data || []).map((item: any) => {
-                        const dataHora = item.data_hora ?? item['data e horario'] ?? item['data_e_horario'] ?? null
-                        const clienteNome = item.cliente_nome ?? item.nome_cliente ?? ''
-                        const profissionalNome = item.profissional_nome ?? item.nome_profissional ?? ''
-                        const observacoes = item.observacoes ?? item['observações'] ?? null
+                            const dataHora = item.data_hora ?? item['data e horario'] ?? item['data_e_horario'] ?? null
+                            const clienteNome = item.cliente_nome ?? item.nome_cliente ?? ''
+                            const profissionalNome = item.profissional_nome ?? item.nome_profissional ?? ''
+                            const observacoes = item.observacoes ?? item['observações'] ?? null
 
-                        return {
-                            id: item.id,
-                            created_at: item.created_at,
-                            data_hora: dataHora,
-                            status: item.status,
-                            observacoes: observacoes,
-                            cliente_id: item.cliente_id ?? item.cliente,
-                            profissional_id: item.profissional_id ?? item.profissional,
-                            cliente: {
-                                nome: clienteNome,
-                                email: item.cliente_email
-                            },
-                            profissional: {
-                                id: item.profissional_id ?? item.profissional,
-                                users: {
-                                    nome: profissionalNome || 'Profissional'
+                            return {
+                                id: item.id,
+                                created_at: item.created_at,
+                                data_hora: dataHora,
+                                status: item.status,
+                                observações: observacoes,
+                                cliente_id: item.cliente_id ?? item.cliente,
+                                profissional_id: item.profissional_id ?? item.profissional,
+                                cliente: {
+                                    nome: clienteNome,
+                                    email: item.cliente_email
+                                },
+                                profissional: {
+                                    id: item.profissional_id ?? item.profissional,
+                                    users: {
+                                        nome: profissionalNome || 'Profissional'
+                                    }
                                 }
                             }
-                        }
-                    }) as any
+                        }) as any
                     } catch (e) {
                         console.error('Erro ao buscar agendamentos (fallback):', e)
                     }
